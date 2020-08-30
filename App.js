@@ -1,85 +1,56 @@
-import { StatusBar } from "expo-status-bar";
 import React, { Component } from "react";
-import {View, Text, Image, Button, StyleSheet} from 'react-native';
-import * as ImagePicker from "expo-image-picker";
+import { Provider } from "react-redux";
+import { createStore, applyMiddleware } from "redux";
+import { StyleSheet } from "react-native";
+import { NavigationContainer, DefaultTheme } from "@react-navigation/native";
+import { createBottomTabNavigator } from "@react-navigation/bottom-tabs";
+import { AntDesign, Feather } from "@expo/vector-icons";
+import reducer from './reducers/reducer';
+import Upload from "./screens/Upload";
+import Settings from "./screens/Settings";
+
+const store = createStore(reducer);
+const Tab = createBottomTabNavigator();
+const reactNavigationTheme = {
+  ...DefaultTheme,
+  colors: {
+    ...DefaultTheme.colors,
+    background: "white",
+  },
+};
 
 class App extends Component {
   constructor(props) {
     super(props);
-    this.state = {
-      photo: null,
-      urlEndpoint: "",
-    };
   }
 
-  handleChoosePhoto = async () => {
-    let permissionResult = await ImagePicker.requestCameraRollPermissionsAsync();
-
-    if (permissionResult.granted === false) {
-      alert("Permission to access camera roll is required!");
-      return;
-    }
-
-    let pickerResult = await ImagePicker.launchImageLibraryAsync();
-    if (pickerResult.cancelled === true) {
-      return;
-    }
-    this.setState({photo: pickerResult})
-    console.log(pickerResult);
-  };
-
-  handleUploadPhoto = () => {
-    fetch('http://192.168.1.178:5000/digits', {
-      method: 'POST',
-      body: this.createFormData(this.state.photo, {}),
-      headers: {
-        'Content-Type': 'multipart/form-data;',
-      },
-    })
-      .then(response => response.text())
-      .then(response => {
-        console.log(response);
-        alert(response);
-      })
-      .catch(error => {
-        console.log('Upload Error', error);
-        alert('Upload failed!');
-      });
-  };
-
-  createFormData = (photo, body) => {
-    const data = new FormData();
-    var photoBody = {
-      name: photo.fileName == null ? 'guava' : photo.fileName,
-      type: photo.type,
-      uri:
-        Platform.OS === 'android'
-          ? photo.uri
-          : photo.uri.replace('file://', ''),
-    };
-    data.append('file', photoBody);
-    console.log(photoBody)
-    Object.keys(body).forEach(key => {
-      data.append(key, body[key]);
-    });
-    return data;
-  };
-
   render() {
-    const { photo } = this.state;
     return (
-      <View style={{ flex: 1, alignItems: "center", justifyContent: "center" }}>
-        {photo && (
-          <React.Fragment>
-            <Image
-              source={{ uri: photo.uri }}
-              style={{ width: 300, height: 300 }}
+      <Provider store={store}>
+        <NavigationContainer theme={reactNavigationTheme}>
+          <Tab.Navigator>
+            <Tab.Screen
+              name="Upload"
+              component={Upload}
+              options={{
+                tabBarIcon: ({ color, size }) => (
+                  <AntDesign name="upload" size={size} color={color} />
+                ),
+              }}
             />
-            <Button title="Upload" onPress={this.handleUploadPhoto} />
-          </React.Fragment>
-        )}
-        <Button title="Choose Photo" onPress={this.handleChoosePhoto} />
-      </View>
+            <Tab.Screen
+              name="Settings"
+              component={Settings}
+              options={{
+                tabBarLabel: "Settings",
+                tabBarIcon: ({ color, size }) => (
+                  <Feather name="settings" size={size} color={color} />
+                ),
+              }}
+            />
+          </Tab.Navigator>
+        </NavigationContainer>
+      </Provider>
     );
   }
 }
