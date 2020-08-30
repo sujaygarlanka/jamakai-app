@@ -6,10 +6,13 @@ import {
   StyleSheet,
   TouchableOpacity,
   Text,
+  ImageBackground,
+  Dimensions,
 } from "react-native";
 import { connect } from "react-redux";
 import { TextInput } from "react-native-paper";
 import * as ImagePicker from "expo-image-picker";
+import { ImageManipulator } from "expo-image-crop";
 
 class Upload extends Component {
   constructor(props) {
@@ -17,6 +20,7 @@ class Upload extends Component {
     this.state = {
       photo: null,
       fileName: "",
+      isEditorVisible: false,
     };
   }
 
@@ -28,9 +32,7 @@ class Upload extends Component {
       return;
     }
 
-    let pickerResult = await ImagePicker.launchCameraAsync({
-      allowsEditing: true,
-    });
+    let pickerResult = await ImagePicker.launchCameraAsync();
     if (pickerResult.cancelled === true) {
       return;
     }
@@ -45,9 +47,7 @@ class Upload extends Component {
       return;
     }
 
-    let pickerResult = await ImagePicker.launchImageLibraryAsync({
-      allowsEditing: true,
-    });
+    let pickerResult = await ImagePicker.launchImageLibraryAsync();
     if (pickerResult.cancelled === true) {
       return;
     }
@@ -75,13 +75,14 @@ class Upload extends Component {
 
   setPhoto = async (photo) => {
     let fileName = photo.fileName ? photo.fileName : this.uuidv4() + ".jpg";
-    this.setState({fileName, photo});
-  }
+    this.setState({fileName, photo})
+  };
 
   // https://stackoverflow.com/questions/105034/how-to-create-guid-uuid
   uuidv4() {
-    return 'xxxxxxx'.replace(/[xy]/g, function(c) {
-      var r = Math.random() * 16 | 0, v = c == 'x' ? r : (r & 0x3 | 0x8);
+    return "xxxxxxx".replace(/[xy]/g, function (c) {
+      var r = (Math.random() * 16) | 0,
+        v = c == "x" ? r : (r & 0x3) | 0x8;
       return v.toString(16);
     });
   }
@@ -103,8 +104,14 @@ class Upload extends Component {
     return data;
   };
 
+  onToggleEdit = () => {
+    const { isEditorVisible } = this.state;
+    this.setState({ isEditorVisible: !isEditorVisible });
+  };
+
   render() {
     const { photo } = this.state;
+    const { width, height } = Dimensions.get("window");
     return (
       <View style={{ flex: 1, alignItems: "center", justifyContent: "center" }}>
         <View
@@ -122,14 +129,40 @@ class Upload extends Component {
             style={{ width: "40%", height: 30 }}
           ></TextInput>
         </View>
-        {photo && (
+        {photo && !this.state.isEditorVisible && (
           <React.Fragment>
+            <Button title="Edit" onPress={()=> this.setState({isEditorVisible: true})} />
             <Image
               source={{ uri: photo.uri }}
               style={{ width: 300, height: 300 }}
             />
             <Button title="Upload" onPress={this.handleUploadPhoto} />
           </React.Fragment>
+        )}
+        {photo && this.state.isEditorVisible && (
+          <ImageBackground
+            resizeMode="contain"
+            style={{
+              justifyContent: "center",
+              padding: 20,
+              alignItems: "center",
+              height,
+              width,
+              backgroundColor: "black",
+            }}
+            source={photo}
+          >
+            <ImageManipulator
+              photo={photo}
+              isVisible={this.state.isEditorVisible}
+              onPictureChoosed={({ uri: uriM }) => {
+                let photo = { ...this.state.photo };
+                photo.uri = uriM;
+                this.setState({ photo });
+              }}
+              onToggleModal={this.onToggleEdit}
+            />
+          </ImageBackground>
         )}
         <Button title="Choose Photo" onPress={this.handleChoosePhoto} />
         <Button title="Take Picture" onPress={this.handleCamera} />
