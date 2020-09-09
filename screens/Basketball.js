@@ -4,15 +4,12 @@ import {
   Image,
   Button,
   StyleSheet,
-  TouchableOpacity,
   Text,
-  ImageBackground,
   Dimensions,
 } from "react-native";
 import { connect } from "react-redux";
-import { TextInput } from "react-native-paper";
+import { TextInput, RadioButton } from "react-native-paper";
 import * as ImagePicker from "expo-image-picker";
-import { ImageManipulator } from "expo-image-crop";
 import { Video } from "expo-av";
 
 class Upload extends Component {
@@ -21,7 +18,7 @@ class Upload extends Component {
     this.state = {
       media: null,
       fileName: "",
-      isEditorVisible: false,
+      make: true,
     };
   }
 
@@ -33,7 +30,9 @@ class Upload extends Component {
       return;
     }
 
-    let pickerResult = await ImagePicker.launchCameraAsync({mediaTypes: ImagePicker.MediaTypeOptions.All});
+    let pickerResult = await ImagePicker.launchCameraAsync({
+      mediaTypes: ImagePicker.MediaTypeOptions.Videos,
+    });
     if (pickerResult.cancelled === true) {
       return;
     }
@@ -48,18 +47,20 @@ class Upload extends Component {
       return;
     }
 
-    let pickerResult = await ImagePicker.launchImageLibraryAsync({mediaTypes: ImagePicker.MediaTypeOptions.All});
+    let pickerResult = await ImagePicker.launchImageLibraryAsync({
+      mediaTypes: ImagePicker.MediaTypeOptions.Videos,
+    });
     if (pickerResult.cancelled === true) {
       return;
     }
-    console.log(pickerResult)
+    console.log(pickerResult);
     this.setMedia(pickerResult);
   };
 
   handleUploadMedia = () => {
     fetch(this.props.uploadEndpoint, {
       method: "POST",
-      body: this.createFormData(this.state.media, {}),
+      body: this.createFormData(this.state.media, {make: this.state.make}),
       headers: {
         "Content-Type": "multipart/form-data;",
       },
@@ -81,7 +82,7 @@ class Upload extends Component {
       extension = '.mov'
     }
     let fileName = media.fileName ? media.fileName : this.uuidv4() + extension;
-    this.setState({fileName, media})
+    this.setState({ fileName, media });
   };
 
   // https://stackoverflow.com/questions/105034/how-to-create-guid-uuid
@@ -110,11 +111,6 @@ class Upload extends Component {
     return data;
   };
 
-  onToggleEdit = () => {
-    const { isEditorVisible } = this.state;
-    this.setState({ isEditorVisible: !isEditorVisible });
-  };
-
   render() {
     const { media } = this.state;
     const { width, height } = Dimensions.get("window");
@@ -135,17 +131,7 @@ class Upload extends Component {
             style={{ width: "40%", height: 30 }}
           ></TextInput>
         </View>
-        {media && media.type == 'image' && !this.state.isEditorVisible && (
-          <React.Fragment>
-            <Button title="Edit" onPress={()=> this.setState({isEditorVisible: true})} />
-            <Image
-              source={{ uri: media.uri }}
-              style={{ width: 300, height: 300 }}
-            />
-            <Button title="Upload" onPress={this.handleUploadMedia} />
-          </React.Fragment>
-        )}
-        {media && media.type == 'video' && !this.state.isEditorVisible && (
+        {media && (
           <React.Fragment>
             <Video
               source={{
@@ -162,33 +148,24 @@ class Upload extends Component {
             <Button title="Upload" onPress={this.handleUploadMedia} />
           </React.Fragment>
         )}
-        {media && this.state.isEditorVisible && (
-          <ImageBackground
-            resizeMode="contain"
-            style={{
-              justifyContent: "center",
-              padding: 20,
-              alignItems: "center",
-              height,
-              width,
-              backgroundColor: "black",
-            }}
-            source={media}
-          >
-            <ImageManipulator
-              photo={media}
-              isVisible={this.state.isEditorVisible}
-              onPictureChoosed={({ uri: uriM }) => {
-                let media = { ...this.state.media };
-                media.uri = uriM;
-                this.setState({ media });
-              }}
-              onToggleModal={this.onToggleEdit}
-            />
-          </ImageBackground>
-        )}
         <Button title="Choose Media" onPress={this.handleChooseMedia} />
         <Button title="Capture Media" onPress={this.handleCamera} />
+        <View style={{ flexDirection: "row", alignItems: "center" }}>
+          <RadioButton
+            value="make"
+            status={this.state.make ? "checked" : "unchecked"}
+            onPress={() => this.setState({ make: true })}
+          />
+          <Text>Make</Text>
+        </View>
+        <View style={{ flexDirection: "row", alignItems: "center" }}>
+          <RadioButton
+            value="images"
+            status={this.state.make ? "unchecked" : "checked"}
+            onPress={() => this.setState({ make: false })}
+          />
+          <Text fontSize={900} >Miss</Text>
+        </View>
       </View>
     );
   }

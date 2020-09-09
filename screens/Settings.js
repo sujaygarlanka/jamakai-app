@@ -5,8 +5,7 @@ import {
   Text,
   StyleSheet,
 } from "react-native";
-import { RadioButton } from "react-native-paper";
-import { Title, Headline, TextInput } from "react-native-paper";
+import { Title, Headline, TextInput, RadioButton } from "react-native-paper";
 
 class Settings extends Component {
   constructor(props) {
@@ -21,6 +20,7 @@ class Settings extends Component {
       path: {
         digits: "/digits",
         images: "/images",
+        basketball: "/basketball",
         custom: "/",
       },
     };
@@ -95,6 +95,17 @@ class Settings extends Component {
             />
             <Text>Upload Image - </Text>
             <Text style={{ color: "gray" }}>{this.state.path.images}</Text>
+          </View>
+          <View style={{ flexDirection: "row", alignItems: "center" }}>
+            <RadioButton
+              value="basketball"
+              status={
+                this.state.pathCheck === "basketball" ? "checked" : "unchecked"
+              }
+              onPress={() => this.setState({ pathCheck: "basketball" })}
+            />
+            <Text>Upload Basketball Video - </Text>
+            <Text style={{ color: "gray" }}>{this.state.path.basketball}</Text>
           </View>
           <View style={{ flexDirection: "row", alignItems: "center" }}>
             <RadioButton

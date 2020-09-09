@@ -4,9 +4,10 @@ import { createStore, applyMiddleware } from "redux";
 import { StyleSheet } from "react-native";
 import { NavigationContainer, DefaultTheme } from "@react-navigation/native";
 import { createBottomTabNavigator } from "@react-navigation/bottom-tabs";
-import { AntDesign, Feather } from "@expo/vector-icons";
+import { AntDesign, Feather, Ionicons } from "@expo/vector-icons";
 import reducer from './reducers/reducer';
 import Upload from "./screens/Upload";
+import Basketball from "./screens/Basketball";
 import Settings from "./screens/Settings";
 
 const store = createStore(reducer);
@@ -35,6 +36,15 @@ class App extends Component {
               options={{
                 tabBarIcon: ({ color, size }) => (
                   <AntDesign name="upload" size={size} color={color} />
+                ),
+              }}
+            />
+            <Tab.Screen
+              name="Basketball"
+              component={Basketball}
+              options={{
+                tabBarIcon: ({ color, size }) => (
+                  <Ionicons name="md-basketball" size={size} color={color} />
                 ),
               }}
             />
