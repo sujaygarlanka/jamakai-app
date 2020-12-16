@@ -1,1 +1,1 @@
-# jamakai-app
+# ml-learning-app
